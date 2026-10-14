@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090b10">
+  <meta name="description" content="ARENA LIVE — uma batalha ao vivo controlada pela comunidade.">
+  <title>ARENA LIVE — A batalha é da comunidade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=gift-rules-editor">
+  <script src="/vendor/phaser/phaser.min.js" defer></script>
+  <script src="/socket.io/socket.io.js" defer></script>
+  <script src="/app.js?v=arena-background" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="ARENA LIVE início">
+      <span class="brand-mark"><span></span><span></span><span></span></span>
+      <span>ARENA<span class="brand-light">LIVE</span><small>COMMUNITY BATTLE ENGINE</small></span>
+    </a>
+    <div class="topbar-right">
+      <span id="live-indicator" class="live-indicator"><span class="status-dot"></span><span id="live-label">LIVE desconectado</span></span>
+      <span id="demo-indicator" class="demo-indicator">DEMO</span>
+      <button id="admin-open" class="icon-button" type="button" aria-label="Abrir painel administrativo" title="Painel administrativo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.4a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.7a8 8 0 0 1-1.4.8l-.3 1.8h-3l-.4-1.8a8 8 0 0 1-1.5-.7l-1.6.7L8 16.3l1.4-1.2a7 7 0 0 1 0-1.7L8 12.2l1.5-2.6 1.7.7a8 8 0 0 1 1.4-.8l.3-1.8h3l.4 1.8a8 8 0 0 1 1.5.7l1.6-.7 1.5 2.6-1.4 1.2c.1.6.1 1.1-.1 1.7Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="intro-row">
+      <div>
+        <div class="eyebrow"><span class="eyebrow-line"></span> O CHAT DECIDE. A ARENA RESPONDE.</div>
+        <h1>A batalha é <span>da comunidade.</span></h1>
+        <p class="intro-copy">Comande cada movimento. Jogue junto. Domine a arena.</p>
+      </div>
+      <div class="round-meta">
+        <span class="round-label">RODADA</span>
+        <strong id="round-number">#01</strong>
+        <span class="round-separator"></span>
+        <span id="phase-label" class="phase-badge">AGUARDANDO JOGADORES</span>
+      </div>
+    </section>
+
+    <section class="dashboard" aria-label="Jogo e informações da partida">
+      <div class="stage-column">
+        <section class="arena-card">
+          <div class="arena-topline">
+            <div class="arena-heading">
+              <span class="arena-live-mark"><span></span> ARENA AO VIVO</span>
+              <span id="arena-subtitle" class="arena-subtitle">Aguardando o início da batalha</span>
+            </div>
+            <div class="timer-box"><span>TEMPO</span><strong id="timer">03:00</strong></div>
+          </div>
+          <div class="canvas-shell">
+            <div class="arena-vignette"></div>
+            <div class="team-label team-red"><span></span><span id="side-red-label">LULA</span></div>
+            <div class="team-label team-blue"><span id="side-blue-label">BOLSONARO</span><span></span></div>
+            <div id="fighter-name-red" class="fighter-name-overlay fighter-name-red" aria-label="Lula"></div>
+            <div id="fighter-name-blue" class="fighter-name-overlay fighter-name-blue" aria-label="Bolsonaro"></div>
+            <div id="game-canvas" aria-label="Arena de batalha 2D"></div>
+            <div id="winner-banner" class="winner-banner hidden"></div>
+            <div class="canvas-bottom-glow"></div>
+          </div>
+          <div class="arena-footer">
+            <div class="team-summary">
+              <span class="team-dot red-dot"></span><strong id="red-count">0</strong><span id="side-red-count-label">LULA</span>
+              <span class="team-vs">VS</span>
+              <span class="team-dot blue-dot"></span><strong id="blue-count">0</strong><span id="side-blue-count-label">BOLSONARO</span>
+            </div>
+            <span id="alive-count" class="alive-count">0 combatentes na arena</span>
+          </div>
+        </section>
+
+        <section class="energy-card">
+          <div class="energy-top">
+            <div class="energy-title"><span class="energy-icon">✳</span><span>ENERGIA COLETIVA</span><small>CURTIDAS CARREGAM O ESPECIAL</small></div>
+            <div class="energy-value"><strong id="energy-value">0</strong><span>%</span></div>
+          </div>
+          <div class="energy-track"><div id="energy-fill" class="energy-fill"></div><div class="energy-glint"></div></div>
+          <div class="energy-bottom"><span>♥ <b id="likes-count">0</b> curtidas recebidas</span><span id="special-hint">Meta: 100% para liberar o especial</span></div>
+        </section>
+
+        <section class="play-card">
+          <div class="play-heading">
+            <div><span class="section-kicker">ESCOLHA QUEM APOIAR</span><h2>Seu comentário vira um golpe.</h2></div>
+            <span id="joined-badge" class="joined-badge hidden">NA ARENA</span>
+          </div>
+          <div class="join-row">
+            <label class="name-field"><span class="sr-only">Seu nome de jogador</span><input id="player-name" type="text" maxlength="24" placeholder="Escolha seu nome de jogador"></label>
+            <button id="join-red" class="button button-red" type="button"><span class="join-plus">+</span> <span id="join-red-name">Apoiar Lula</span></button>
+            <button id="join-blue" class="button button-blue" type="button"><span class="join-plus">+</span> <span id="join-blue-name">Apoiar Bolsonaro</span></button>
+          </div>
+          <div class="action-row">
+            <button class="action-button" data-command="!atacar" type="button"><span class="action-icon attack-icon">↗</span> ATACAR</button>
+            <button class="action-button" data-command="!defender" type="button"><span class="action-icon defend-icon">◇</span> DEFENDER</button>
+            <button class="action-button special-action" data-command="!especial" type="button"><span class="action-icon special-icon">✳</span> ESPECIAL <span class="special-cost">100%</span></button>
+            <button id="top-command" class="action-button top-action" type="button"><span class="action-icon top-icon">↟</span> TOP</button>
+          </div>
+          <div class="demo-controls">
+            <div class="demo-explain"><span class="demo-symbol">◉</span><span><strong>Teste a arena</strong><small>Simulação local — não envia eventos para o TikTok.</small></span></div>
+            <div class="demo-buttons"><button id="demo-start" class="button button-quiet" type="button">▶ Iniciar demo</button><button id="demo-comment" class="button button-quiet" type="button">💬 Comentário demo</button><button id="demo-event" class="button button-quiet" type="button">+ Evento demo</button></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side-column">
+        <section class="side-card leaderboard-card">
+          <div class="side-heading"><div><span class="section-kicker">OS MAIS FORTES</span><h2>Hall da fama</h2></div><span class="trophy-icon">♜</span></div>
+          <div id="leaderboard" class="leaderboard"><div class="empty-state">A pontuação aparecerá aqui.</div></div>
+          <div class="leaderboard-footer"><span>RANKING GERAL</span><span>ATUALIZADO AO VIVO</span></div>
+        </section>
+
+        <section class="side-card feed-card">
+          <div class="side-heading"><div><span class="section-kicker">A ARENA NÃO PARA</span><h2>Feed de batalha</h2></div><span class="feed-live"><span></span> LIVE</span></div>
+          <div id="activity-feed" class="activity-feed"><div class="empty-state">Aguardando os primeiros movimentos...</div></div>
+        </section>
+
+        <section class="commands-card">
+          <div class="commands-header"><span class="command-terminal">&gt;_</span><span>COMANDOS DO CHAT</span></div>
+          <div class="command-list">
+            <div><code id="command-join">!entrar lula</code><span id="command-join-help">Apoiar Lula</span></div>
+            <div><code id="command-red-attack">lula</code><span>Golpe do lado Lula</span></div>
+            <div><code id="command-blue-attack">bolsonaro</code><span>Golpe do lado Bolsonaro</span></div>
+            <div><code>!atacar</code><span>Atacar um adversário</span></div>
+            <div><code>!defender</code><span>Erguer escudo por 5s</span></div>
+            <div><code>!especial</code><span>Poder da energia coletiva</span></div>
+            <div><code>!top</code><span>Ver os líderes da arena</span></div>
+          </div>
+          <p class="chat-note">Ao conectar uma LIVE, a partida começa automaticamente. Cada comentário vira um golpe e cada nova rodada começa sozinha enquanto a conexão estiver ativa. Use <code>!entrar NOME</code> para escolher um lado; sem escolher, a arena distribui o chat entre os lutadores.</p>
+        </section>
+      </aside>
+    </section>
+
+    <footer class="page-footer">
+      <span>ARENA LIVE <span class="footer-separator">/</span> BATALHAS MOVIDAS PELA COMUNIDADE</span>
+      <button id="footer-admin" type="button">PAINEL DE CONTROLE <span>↗</span></button>
+      <span id="footer-system" class="footer-system"><i></i> SERVIDOR <b>OPERACIONAL</b></span>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="admin-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <section class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+      <div class="admin-header"><div><span class="section-kicker">ARENA LIVE / CONTROLE</span><h2 id="admin-title">Painel administrativo</h2></div><button id="admin-close" class="icon-button close-button" type="button" aria-label="Fechar painel">×</button></div>
+      <form id="login-form" class="admin-login hidden"><label>Senha administrativa<input id="admin-password" type="password" autocomplete="current-password" required maxlength="256"></label><button class="button button-primary" type="submit">Acessar painel</button><p id="login-message" class="form-message"></p></form>
+      <div id="admin-content" class="admin-content hidden">
+        <section class="admin-section">
+          <div class="admin-section-title"><span class="section-kicker">CONEXÃO REAL</span><span id="admin-live-status" class="admin-status">Desconectado</span></div>
+          <p class="admin-help">Conecte ao usuário público de uma transmissão ativa. O conector é comunitário e não oficial.</p>
+          <form id="live-form" class="live-form"><label class="sr-only" for="live-username">Usuário TikTok</label><input id="live-username" type="text" placeholder="@usuario" maxlength="32"><button id="live-connect" class="button button-primary" type="submit">Conectar LIVE</button><button id="live-disconnect" class="button button-quiet hidden" type="button">Desconectar</button></form>
+          <p id="live-error" class="form-message"></p>
+        </section>
+        <section class="admin-section">
+          <div class="admin-section-title"><span class="section-kicker">PARTIDA</span><span id="match-status" class="admin-status">Aguardando</span></div>
+          <div class="admin-action-row"><button id="match-start" class="button button-primary" type="button">▶ Iniciar partida</button><button id="match-stop" class="button button-danger" type="button">■ Encerrar partida</button></div>
+          <label class="toggle-row"><span>Permitir eventos de demonstração</span><input id="demo-toggle" type="checkbox"></label>
+        </section>
+        <form id="settings-form" class="admin-section">
+          <div class="admin-section-title"><span class="section-kicker">REGRAS DA ARENA</span></div>
+          <div class="settings-grid">
+            <label>Lutador do lado vermelho<input id="setting-side-red" type="text" minlength="2" maxlength="24" required></label>
+            <label>Lutador do lado azul<input id="setting-side-blue" type="text" minlength="2" maxlength="24" required></label>
+            <label>Duração (segundos)<input id="setting-duration" type="number" min="30" max="900" required></label>
+            <label>Máximo de jogadores<input id="setting-players" type="number" min="2" max="500" required></label>
+            <label>Meta de curtidas<input id="setting-likes" type="number" min="10" max="100000" required></label>
+          </div>
+          <div class="gift-rules-heading">
+            <div><span class="gift-label">Regras de presentes</span><p class="admin-help">Defina o efeito de cada presente recebido na LIVE. Use o nome do presente como aparece no TikTok; maiúsculas e minúsculas não fazem diferença.</p></div>
+            <button id="gift-rule-add" class="button button-quiet" type="button">+ Adicionar presente</button>
+          </div>
+          <div id="gift-rules" class="gift-rules" aria-live="polite"></div>
+          <p class="admin-help">Intensidade de 1 a 100. Cura recupera a vida do time, energia carrega o especial, dano atinge o adversário e escudo protege o time por 8 segundos. Limite: 30 regras.</p>
+          <button class="button button-primary" type="submit">Salvar configurações</button><p id="settings-message" class="form-message"></p>
+        </form>
+        <div class="admin-bottom"><span>Conexão comunitária não oficial; pode parar de funcionar sem aviso.</span><button id="admin-logout" type="button">Sair do painel</button></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
